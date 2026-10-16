@@ -11,8 +11,8 @@ resets profile, progress, pending checkpoints, and the saved project map. Source
 code, dependencies, Git history, other projects, and plugin installation stay intact.
 
 If you are not running in Claude Code, first read your host's notes beside this
-file: [codex.md](codex.md), [copilot.md](copilot.md), [omp.md](omp.md), or
-[cline.md](cline.md).
+file: [codex.md](codex.md), [copilot.md](copilot.md), [omp.md](omp.md),
+[cline.md](cline.md), or [opencode.md](opencode.md).
 
 1. Run the read-only preview for the user's current project directory. Replace
    `<absolute project directory>` with its actual absolute path, safely quoted;

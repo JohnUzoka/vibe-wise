@@ -16,6 +16,7 @@ For anyone who wants to learn as they build—whether you're an aspiring enginee
   - [GitHub Copilot CLI](#github-copilot-cli)
   - [omp](#omp)
   - [Cline](#cline)
+  - [OpenCode](#opencode)
 - [What it feels like](#what-it-feels-like)
 - [Make it yours](#make-it-yours)
 - [Updating](#updating)
@@ -26,7 +27,8 @@ For anyone who wants to learn as they build—whether you're an aspiring enginee
 You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup),
 [Codex](https://developers.openai.com/codex),
 [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli),
-[omp](https://github.com/can1357/oh-my-pi), or [Cline CLI](https://docs.cline.bot),
+[omp](https://github.com/can1357/oh-my-pi), [Cline](https://docs.cline.bot), or
+[OpenCode](https://opencode.ai),
 and [Python 3](https://www.python.org/downloads/). Python restores learning context
 and resets learning notes; in Codex, only reset needs it. No extra Python packages
 are needed.
@@ -123,8 +125,7 @@ To reset, run `/vibe-wise:reset`.
 
 ### Cline
 
-Plugins work in the Cline CLI, SDK, and Kanban, not in the VS Code or JetBrains
-extensions.
+**Cline CLI, SDK, or Kanban:** install the plugin.
 
 ```sh
 cline plugin install https://github.com/nykooi1/vibe-wise.git
@@ -132,6 +133,36 @@ cline plugin install https://github.com/nykooi1/vibe-wise.git
 
 Start Cline in your project and run `/vibe-wise-learn`. The plugin restores
 learning mode at the start of each run. To reset, run `/vibe-wise-reset`.
+
+**Cline in VS Code or JetBrains:** the extensions don't load plugins. Clone this
+repository and run the installer on the machine where the extension runs. It copies
+the Learn and Reset skills to `~/.cline/skills/` and adds an always-on rule to
+`Documents/Cline/Rules/`:
+
+```sh
+python3 scripts/install_cline.py
+```
+
+From WSL, for a Windows installation of the extension, pass your Windows home:
+`python3 scripts/install_cline.py --home /mnt/c/Users/<you>`. Then run `/learn` in
+Cline. The rule resumes learning mode in new tasks and after compaction. To reset,
+run `/reset`. Run the installer again after updating your clone.
+
+### OpenCode
+
+OpenCode loads plugins from npm or from its plugin directory, so clone this
+repository and point a one-line plugin file at it:
+
+```sh
+git clone https://github.com/nykooi1/vibe-wise.git ~/vibe-wise
+mkdir -p ~/.config/opencode/plugins
+echo 'export { VibeWise } from "'"$HOME"'/vibe-wise/adapters/opencode/plugin.ts";' > ~/.config/opencode/plugins/vibe-wise.ts
+```
+
+Start OpenCode in your project and run `/vibe-wise-learn`. The plugin adds a short
+restoration note to every request while learning is active, so it continues in
+new sessions and after compaction. To reset, run `/vibe-wise-reset`. The plugin
+also lets OpenCode read the VibeWise guides without asking each time.
 
 All hosts share the same `.vibe-wise/` notes, so you can switch tools between
 sessions. Don't use two tools on the same project at the same time.
@@ -340,8 +371,9 @@ Then start a new Codex session.
 
 For GitHub Copilot CLI, run `copilot plugin update vibe-wise`. For omp, run
 `omp plugin install github:nykooi1/vibe-wise` again. For Cline, run
-`cline plugin install --force https://github.com/nykooi1/vibe-wise.git`. Then start
-a new session.
+`cline plugin install --force https://github.com/nykooi1/vibe-wise.git`, or rerun
+`scripts/install_cline.py` for the VS Code extension after `git pull`. For OpenCode,
+run `git pull` in your clone. Then start a new session.
 
 ## License
 

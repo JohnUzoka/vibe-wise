@@ -318,7 +318,9 @@ as plain text, with "your file-reading tool" instead of "Read". Each host reads
 | --- | --- | --- | --- |
 | Copilot CLI | `/learn`, `/reset` (plugin skills) | `sessionStart` hook, `com.github.copilot/hooks/hooks.json` | Always-on rule, `com.github.copilot/rules/vibe-wise.mdc` |
 | omp | `/vibe-wise:learn`, `/vibe-wise:reset` | `before_agent_start` message, `adapters/omp/extension.ts` | `session.compacting` context, then re-delivered on the next turn |
-| Cline | `/vibe-wise-learn`, `/vibe-wise-reset` | `beforeRun` `appendContext`, `adapters/cline/plugin.ts` | Re-delivered at the start of every run |
+| Cline CLI/SDK/Kanban | `/vibe-wise-learn`, `/vibe-wise-reset` | `beforeRun` `appendContext`, `adapters/cline/plugin.ts` | Re-delivered at the start of every run |
+| Cline VS Code/JetBrains | `/learn`, `/reset` (copied skills) | Global rule from `scripts/install_cline.py` | Same rule; it is part of every request |
+| OpenCode | `/vibe-wise-learn`, `/vibe-wise-reset` (added by the plugin's `config` hook) | `experimental.chat.system.transform`, `adapters/opencode/plugin.ts` | Same transform; the system prompt is rebuilt for every request |
 
 Copilot reads the root `plugin.json`, an Agent Plugins 1.0 manifest. Only that
 format loads `com.github.copilot/` (hooks and rules). Plugin rules must be `.mdc`
@@ -335,11 +337,32 @@ loaded as repository hooks for anyone developing in this checkout. Direct instal
 Cline evaluates plugins through jiti from a `data:` URL, so `import.meta.url` is not
 the plugin file. The adapter resolves the plugin root from jiti's `__dirname`.
 
+The Cline extensions don't load plugins. The installer copies `skills/learn` and
+`skills/reset` to `~/.cline/skills/` and writes the Copilot rule body, without
+frontmatter, to `Documents/Cline/Rules/vibe-wise.md`. Cline treats rule frontmatter
+as `paths` conditions, so a rule without it is always active. This was checked
+against SLAI.Cline 2.2.0, a Cline fork; its bundle reads those two directories and
+puts global rules into the system prompt. That fork also has file hooks
+(`TaskStart`, `TaskResume`, `UserPromptSubmit`) under `Documents/Cline/Hooks`, but
+they are off by default and nothing fires after compaction. Its `PreCompact` hook
+is defined but never invoked, so the rule does the restoring. Installed skills
+are matched on their descriptions and may auto-activate.
+
+OpenCode targets the released `opencode-ai` CLI and its V1 plugin API
+(`@opencode-ai/plugin`). Plugins load from npm or from `~/.config/opencode/plugins/`,
+not from git, so users add a one-line re-export of `adapters/opencode/plugin.ts`.
+The plugin resolves each session's directory through `client.session.get`, because
+one server can host sessions in several directories. OpenCode asks before tools
+touch paths outside the project, and `opencode run` auto-rejects those requests. The
+`config` hook therefore allows `external_directory` for this plugin's `skills/**`
+only. It leaves an explicit global `deny` untouched.
+
 Verified on 2026-10-15:
 
-- All 68 tests pass. They run the Copilot hook command with camelCase and VS Code
-  payloads, and they run the omp extension and Cline plugin under Bun with fake
-  host APIs.
+- All tests pass. They run the Copilot hook command with camelCase and VS Code
+  payloads. They run the omp extension and the Cline and OpenCode plugins under Bun
+  with fake host APIs, and they run the Cline extension installer against
+  temporary homes.
 - omp 16.4.8, live, loaded with `-e adapters/omp/extension.ts`. In print mode, an
   active profile put `State directory: <project>/.vibe-wise` in the model's
   context, and a paused profile left no restoration. In an interactive session,
@@ -359,3 +382,15 @@ Verified on 2026-10-15:
     `copilot plugin install vibe-wise@vibe-wise`, installed both skills and the rule.
   - `/learn` was not invoked explicitly; the model followed the hook text by
     reading `SKILL.md`, `profile.md`, `behavior.md`, and `copilot.md`.
+- OpenCode 1.19.3, live, with isolated XDG directories, a free `opencode/` model,
+  and the plugin loaded through a re-export in `plugins/`:
+  - An active profile put `State directory: <project>/.vibe-wise` in the system
+    prompt; a paused profile gave `NONE`.
+  - `--command vibe-wise-learn` read `SKILL.md`, `behavior.md`, `onboarding.md`,
+    and `state-templates.md` without a permission prompt, then asked the first
+    onboarding question.
+  - The session was compacted through the server API (`POST /session/:id/summarize`,
+    which produced a `compaction` part). The next prompt in the same session still
+    returned the `State directory:` line.
+- Cline VS Code (SLAI.Cline 2.2.0): `scripts/install_cline.py` installed the skills
+  and rule into the Windows home. No extension session has been observed yet.
