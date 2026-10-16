@@ -376,10 +376,20 @@ Verified on 2026-10-15:
   context, and a paused profile left no restoration. In an interactive session,
   `/vibe-wise:learn` loaded the guide, set a paused profile back to active, and
   started onboarding.
-- Cline: `adapters/cline/plugin.ts` typechecks against the published `@cline/core`
-  and was loaded through the real `loadAgentPluginFromPath` and contribution
-  registry. That registered both commands, returned `appendContext` for an active
-  profile, and returned nothing for a paused one. No Cline CLI session was run.
+- Cline CLI 3.0.72, live, with an isolated `CLINE_DIR` and a BYOK Anthropic
+  provider (custom `baseUrl` and `headers` in `providers.json`):
+  - `cline plugin install <checkout> --cwd <project>` copied the whole repository,
+    including `hooks/` and `skills/`, into the project's plugin store.
+  - An active profile put the restoration text into the stored model messages, and
+    the model read `profile.md` and resumed. A paused profile added nothing.
+  - Cline's own `createPluginCommandService` listed `vibe-wise-learn` and
+    `vibe-wise-reset` and returned the Learn prompt for the installed guide. Sending
+    that prompt made the model read `behavior.md`, `cline.md`, `onboarding.md`, and
+    `state-templates.md`, create the three notes, and ask a Build checkpoint.
+  - Plugin slash commands are wired into the interactive host only. One-shot
+    `cline "/vibe-wise-learn ..."` passes the text through unexpanded. The TUI run
+    itself was blocked by a Cline-account authorization error, so typing the
+    command in the TUI was not observed.
 - Copilot CLI 1.0.98, live:
   - The `sessionStart` hook put `State directory: <project>/.vibe-wise` in the
     model's context for an active profile; a paused profile gave `NONE`.
@@ -400,5 +410,6 @@ Verified on 2026-10-15:
   - The session was compacted through the server API (`POST /session/:id/summarize`,
     which produced a `compaction` part). The next prompt in the same session still
     returned the `State directory:` line.
-- Cline VS Code (SLAI.Cline 2.2.0): `scripts/install_cline.py` installed the skills
-  and rule into the Windows home. No extension session has been observed yet.
+- Cline VS Code (SLAI.Cline 2.2.0), user-observed in a WSL-remote window: the
+  Rules & Workflows panel listed the global rule and both workflows, and
+  `/vibe-wise-learn` worked. Resuming in a new task was not separately observed.
