@@ -5,9 +5,9 @@ Kanban (VibeWise plugin) and the VS Code or JetBrains extension (installed skill
 and rule). They don't change the learning behavior; follow SKILL.md and its guides
 as written.
 
-- Commands: with the plugin, `/vibe-wise:learn` is `/vibe-wise-learn` and
-  `/vibe-wise:reset` is `/vibe-wise-reset`. In the extension they are the `/learn`
-  and `/reset` skills. Activate Learn or Reset only when the learner invokes them.
+- Commands: `/vibe-wise:learn` is `/vibe-wise-learn` and `/vibe-wise:reset` is
+  `/vibe-wise-reset` (a plugin command in the CLI, a workflow in the extension).
+  Activate Learn or Reset only when the learner invokes them.
 - Paths: `${CLAUDE_PLUGIN_ROOT}` is not expanded in Cline. Guides such as
   `behavior.md` sit beside this file; resolve them from its directory.
 - Files: where the guides say Read, use your file-reading tool (`read_file` in the

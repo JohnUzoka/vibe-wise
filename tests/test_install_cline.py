@@ -36,6 +36,12 @@ class InstallClineTests(unittest.TestCase):
         self.assertFalse(rule.startswith("---"))
         self.assertIn("Learning mode: paused", rule)
         self.assertIn("load the `learn` skill", rule)
+        # The slash command is the workflow's exact file name.
+        workflows = self.home / "Documents/Cline/Workflows"
+        self.assertEqual(sorted(p.name for p in workflows.iterdir()),
+                         ["vibe-wise-learn", "vibe-wise-reset"])
+        self.assertIn("`learn` skill", (workflows / "vibe-wise-learn").read_text())
+        self.assertIn("`reset` skill", (workflows / "vibe-wise-reset").read_text())
 
     def test_reinstall_replaces_previous_copy(self):
         self.assertEqual(self.install().returncode, 0)

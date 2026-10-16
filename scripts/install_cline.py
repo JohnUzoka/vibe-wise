@@ -1,10 +1,13 @@
 """Install VibeWise for the Cline VS Code (and JetBrains) extension.
 
 The extension has no plugin system, so this copies the Learn and Reset skills into
-Cline's global skills directory and writes an always-on global rule. The rule is
-part of every request, so learning mode survives new tasks, resumed tasks, and
-context compaction. It defers to each project's profile: projects that never ran
-Learn, or that paused it, are unaffected.
+Cline's global skills directory, adds `/vibe-wise-learn` and `/vibe-wise-reset`
+workflows, and writes an always-on global rule. The extension lists only built-in
+commands and workflows in its slash menu; skills are loaded by the model with
+`use_skill`, so the workflows are the explicit entry points. The rule is part of
+every request, so learning mode survives new tasks, resumed tasks, and context
+compaction. It defers to each project's profile: projects that never ran Learn, or
+that paused it, are unaffected.
 
     python3 scripts/install_cline.py                         # this machine's home
     python3 scripts/install_cline.py --home /mnt/c/Users/me  # Windows Cline, from WSL
@@ -20,6 +23,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 RULE_SOURCE = ROOT / "com.github.copilot/rules/vibe-wise.mdc"
 SKILLS = ("learn", "reset")
+# A workflow's slash command is its exact file name, so these have no extension.
+WORKFLOWS = {
+    "vibe-wise-learn": "learn",
+    "vibe-wise-reset": "reset",
+}
 # Copied skill folders are replaced on update, so only replace folders we wrote.
 MARKER = "VibeWise"
 
@@ -34,6 +42,7 @@ def rule_body():
 def install(home):
     skills_dir = home / ".cline" / "skills"
     rules_dir = home / "Documents" / "Cline" / "Rules"
+    workflows_dir = home / "Documents" / "Cline" / "Workflows"
     for name in SKILLS:
         target = skills_dir / name
         existing = target / "SKILL.md"
@@ -49,6 +58,15 @@ def install(home):
     rule = rules_dir / "vibe-wise.md"
     rule.write_text(rule_body(), encoding="utf-8")
     print(f"rule   {rule}")
+    workflows_dir.mkdir(parents=True, exist_ok=True)
+    for command, skill in WORKFLOWS.items():
+        workflow = workflows_dir / command
+        workflow.write_text(
+            f"Load the VibeWise `{skill}` skill with the use_skill tool and follow it in "
+            "this conversation. Any text after the command is the user's request.\n",
+            encoding="utf-8",
+        )
+        print(f"command  /{command}  ({workflow})")
 
 
 def main():

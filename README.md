@@ -144,9 +144,10 @@ python3 scripts/install_cline.py
 ```
 
 From WSL, for a Windows installation of the extension, pass your Windows home:
-`python3 scripts/install_cline.py --home /mnt/c/Users/<you>`. Then run `/learn` in
-Cline. The rule resumes learning mode in new tasks and after compaction. To reset,
-run `/reset`. Run the installer again after updating your clone.
+`python3 scripts/install_cline.py --home /mnt/c/Users/<you>`. Then run
+`/vibe-wise-learn` in Cline. The rule resumes learning mode in new tasks and after
+compaction. To reset, run `/vibe-wise-reset`. Run the installer again after
+updating your clone.
 
 ### OpenCode
 

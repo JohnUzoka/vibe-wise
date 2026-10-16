@@ -319,7 +319,7 @@ as plain text, with "your file-reading tool" instead of "Read". Each host reads
 | Copilot CLI | `/learn`, `/reset` (plugin skills) | `sessionStart` hook, `com.github.copilot/hooks/hooks.json` | Always-on rule, `com.github.copilot/rules/vibe-wise.mdc` |
 | omp | `/vibe-wise:learn`, `/vibe-wise:reset` | `before_agent_start` message, `adapters/omp/extension.ts` | `session.compacting` context, then re-delivered on the next turn |
 | Cline CLI/SDK/Kanban | `/vibe-wise-learn`, `/vibe-wise-reset` | `beforeRun` `appendContext`, `adapters/cline/plugin.ts` | Re-delivered at the start of every run |
-| Cline VS Code/JetBrains | `/learn`, `/reset` (copied skills) | Global rule from `scripts/install_cline.py` | Same rule; it is part of every request |
+| Cline VS Code/JetBrains | `/vibe-wise-learn`, `/vibe-wise-reset` (global workflows) | Global rule from `scripts/install_cline.py` | Same rule; it is part of every request |
 | OpenCode | `/vibe-wise-learn`, `/vibe-wise-reset` (added by the plugin's `config` hook) | `experimental.chat.system.transform`, `adapters/opencode/plugin.ts` | Same transform; the system prompt is rebuilt for every request |
 
 Copilot reads the root `plugin.json`, an Agent Plugins 1.0 manifest. Only that
@@ -338,15 +338,18 @@ Cline evaluates plugins through jiti from a `data:` URL, so `import.meta.url` is
 the plugin file. The adapter resolves the plugin root from jiti's `__dirname`.
 
 The Cline extensions don't load plugins. The installer copies `skills/learn` and
-`skills/reset` to `~/.cline/skills/` and writes the Copilot rule body, without
-frontmatter, to `Documents/Cline/Rules/vibe-wise.md`. Cline treats rule frontmatter
-as `paths` conditions, so a rule without it is always active. This was checked
-against SLAI.Cline 2.2.0, a Cline fork; its bundle reads those two directories and
-puts global rules into the system prompt. That fork also has file hooks
-(`TaskStart`, `TaskResume`, `UserPromptSubmit`) under `Documents/Cline/Hooks`, but
-they are off by default and nothing fires after compaction. Its `PreCompact` hook
-is defined but never invoked, so the rule does the restoring. Installed skills
-are matched on their descriptions and may auto-activate.
+`skills/reset` to `~/.cline/skills/`, adds extension-less `vibe-wise-learn` and
+`vibe-wise-reset` workflows to `Documents/Cline/Workflows/`, and writes the Copilot
+rule body, without frontmatter, to `Documents/Cline/Rules/vibe-wise.md`. Cline
+treats rule frontmatter as `paths` conditions, so a rule without it is always
+active. This was checked against SLAI.Cline 2.2.0, a Cline fork. Its bundle reads
+those directories and puts global rules into the system prompt. Its slash menu lists
+only built-in commands and workflows, and a workflow's command is its exact file
+name. Skills get no slash command there; the model loads them with `use_skill`. That
+fork also has file hooks (`TaskStart`, `TaskResume`, `UserPromptSubmit`) under
+`Documents/Cline/Hooks`, but they are off by default and nothing fires after
+compaction. Its `PreCompact` hook is defined but never invoked, so the rule does the
+restoring. Installed skills are matched on their descriptions and may auto-activate.
 
 OpenCode targets the released `opencode-ai` CLI and its V1 plugin API
 (`@opencode-ai/plugin`). Plugins load from npm or from `~/.config/opencode/plugins/`,
