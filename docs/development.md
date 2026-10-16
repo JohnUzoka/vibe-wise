@@ -417,4 +417,6 @@ Verified on 2026-10-15:
     returned the `State directory:` line.
 - Cline VS Code (SLAI.Cline 2.2.0), user-observed in a WSL-remote window: the
   Rules & Workflows panel listed the global rule and both workflows, and
-  `/vibe-wise-learn` worked. Resuming in a new task was not separately observed.
+  `/vibe-wise-learn` worked. After the guides moved out of Cline skills, a resumed
+  task kept the learning loop and asked for the learner's approach to the build.
+  Compaction in the extension has not been observed.
