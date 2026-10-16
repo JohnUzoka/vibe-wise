@@ -11,7 +11,6 @@
     {
       "name": "vibe-wise",
       "description": "Learn how to build software while Copilot writes the code.",
-      "version": "0.1.44",
       "source": "./"
     }
   ]

@@ -4,7 +4,7 @@
 
 **You build. AI writes.**
 
-A plugin for **Claude Code** and **Codex** that puts learning first and keeps you in control while AI writes the code you designed. The AI **asks for your approach first**, helps you examine tradeoffs, and explains unfamiliar concepts. You shape the design and decide when it's ready to implement. The AI writes the code, then explains what it changed and why.
+A plugin for **Claude Code**, **Codex**, **GitHub Copilot CLI**, **omp**, **Cline**, and **OpenCode** that puts learning first and keeps you in control while AI writes the code you designed. The AI **asks for your approach first**, helps you examine tradeoffs, and explains unfamiliar concepts. You shape the design and decide when it's ready to implement. The AI writes the code, then explains what it changed and why.
 
 For anyone who wants to learn as they build—whether you're an aspiring engineer, a junior developer, or an experienced engineer exploring an unfamiliar stack. Practice planning how the pieces fit together, anticipating failures, and checking the result while keeping ownership of the decisions.
 
@@ -32,6 +32,22 @@ You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup),
 and [Python 3](https://www.python.org/downloads/). Python restores learning context
 and resets learning notes; in Codex, only reset needs it. No extra Python packages
 are needed.
+
+Each tool names the two commands a little differently. This guide uses the Claude
+Code names; substitute your tool's:
+
+| Tool | Start or resume learning | Reset learning | Resumes on its own after a restart or compaction |
+| --- | --- | --- | --- |
+| Claude Code | `/vibe-wise:learn` | `/vibe-wise:reset` | Yes |
+| Codex | `$vibe-wise:learn` | `$vibe-wise:reset` | No: run Learn again each session |
+| GitHub Copilot CLI | `/learn` | `/reset` | Yes |
+| omp | `/vibe-wise:learn` | `/vibe-wise:reset` | Yes |
+| Cline (CLI or VS Code) | `/vibe-wise-learn` | `/vibe-wise-reset` | Yes |
+| OpenCode | `/vibe-wise-learn` | `/vibe-wise-reset` | Yes |
+
+Installing never starts learning. Run the Learn command once in a project; after
+that, VibeWise resumes there automatically until you pause or reset it, and other
+projects stay unaffected.
 
 ### Claude Code
 
@@ -134,22 +150,29 @@ cline plugin install https://github.com/nykooi1/vibe-wise.git
 Start Cline in your project and run `/vibe-wise-learn`. The plugin restores
 learning mode at the start of each run. To reset, run `/vibe-wise-reset`.
 
-**Cline in VS Code or JetBrains:** the extensions don't load plugins. Clone this
-repository and run the installer on the machine where the extension runs. It copies
-the Learn and Reset skills to `~/.cline/skills/`, and adds `/vibe-wise-learn` and
-`/vibe-wise-reset` workflows and an always-on rule under Cline's Documents folder:
+**Cline in VS Code or JetBrains:** the extensions don't load plugins, so an installer
+copies the Learn and Reset skills to `~/.cline/skills/` and adds the two commands
+(as global workflows) and an always-on rule to Cline's global `Cline/` folder. Run
+it on the machine where the extension runs:
 
 ```sh
-python3 scripts/install_cline.py
+git clone https://github.com/nykooi1/vibe-wise.git ~/vibe-wise
+python3 ~/vibe-wise/scripts/install_cline.py
 ```
 
-With VS Code's WSL remote, Cline runs inside WSL, so run the installer in WSL. There,
-Cline's Documents folder is whatever `xdg-user-dir DOCUMENTS` prints, often your home
-directory, and the installer uses the same lookup. For a Windows-native extension,
-run it with Windows Python, or from WSL with
-`--home /mnt/c/Users/<you>`. Then reload VS Code and run `/vibe-wise-learn` in Cline.
-The rule resumes learning mode in new tasks and after compaction. To reset, run
-`/vibe-wise-reset`. Run the installer again after updating your clone.
+- **VS Code connected to WSL** (Remote - WSL): the extension runs inside WSL, so run
+  the commands above in WSL. Cline keeps its global rules and workflows wherever
+  `xdg-user-dir DOCUMENTS` points, which is often your home directory under WSL;
+  the installer uses the same lookup.
+- **Windows VS Code without WSL**: run the installer with Windows Python, or from
+  WSL with `--home /mnt/c/Users/<you>`.
+- If Cline keeps its rules somewhere else, pass that folder with `--documents`.
+
+Reload the VS Code window, then check Cline's **Manage Cline Rules & Workflows**
+panel (the scale icon below the chat box): `vibe-wise.md` should appear under
+Global Rules, and `vibe-wise-learn` and `vibe-wise-reset` under Global Workflows.
+Run `/vibe-wise-learn` in your project. To remove it, delete those three entries and
+the `learn` and `reset` folders in `~/.cline/skills/`.
 
 ### OpenCode
 
@@ -166,6 +189,7 @@ Start OpenCode in your project and run `/vibe-wise-learn`. The plugin adds a sho
 restoration note to every request while learning is active, so it continues in
 new sessions and after compaction. To reset, run `/vibe-wise-reset`. The plugin
 also lets OpenCode read the VibeWise guides without asking each time.
+To remove it, delete `~/.config/opencode/plugins/vibe-wise.ts`.
 
 All hosts share the same `.vibe-wise/` notes, so you can switch tools between
 sessions. Don't use two tools on the same project at the same time.
