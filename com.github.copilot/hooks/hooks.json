@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "python3 \"${PLUGIN_ROOT}/hooks/session_start.py\" --host copilot",
+        "powershell": "python \"${PLUGIN_ROOT}\\hooks\\session_start.py\" --host copilot",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

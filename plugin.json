@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "vibe-wise",
+  "version": "0.1.44",
+  "description": "You build. AI writes. Learn how to build software while AI writes the code.",
+  "author": { "name": "Noah Kim" },
+  "homepage": "https://github.com/nykooi1/vibe-wise",
+  "repository": "https://github.com/nykooi1/vibe-wise",
+  "license": "MIT",
+  "keywords": ["learning", "architecture", "engineering"]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "vibe-wise",
+  "version": "0.1.44",
+  "description": "You build. AI writes. Learn how to build software while AI writes the code.",
+  "license": "MIT",
+  "repository": "https://github.com/nykooi1/vibe-wise",
+  "type": "module",
+  "files": ["adapters", "hooks", "skills", "LICENSE", "README.md"],
+  "omp": {
+    "extensions": ["./adapters/omp/extension.ts"]
+  },
+  "cline": {
+    "plugins": [
+      { "paths": ["./adapters/cline/plugin.ts"], "capabilities": ["hooks", "commands"] }
+    ]
+  },
+  "peerDependencies": {
+    "@cline/core": "*"
+  },
+  "peerDependenciesMeta": {
+    "@cline/core": { "optional": true }
+  }
+}

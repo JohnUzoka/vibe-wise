@@ -13,6 +13,9 @@ For anyone who wants to learn as they build—whether you're an aspiring enginee
 - [Get started](#get-started)
   - [Claude Code](#claude-code)
   - [Codex](#codex)
+  - [GitHub Copilot CLI](#github-copilot-cli)
+  - [omp](#omp)
+  - [Cline](#cline)
 - [What it feels like](#what-it-feels-like)
 - [Make it yours](#make-it-yours)
 - [Updating](#updating)
@@ -20,11 +23,13 @@ For anyone who wants to learn as they build—whether you're an aspiring enginee
 
 ## Get started
 
-You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup) or
-[Codex](https://developers.openai.com/codex), and
-[Python 3](https://www.python.org/downloads/). In Claude Code, VibeWise uses Python
-to restore learning context and reset learning notes. In Codex, only reset needs it.
-No extra Python packages are needed.
+You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup),
+[Codex](https://developers.openai.com/codex),
+[GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli),
+[omp](https://github.com/can1357/oh-my-pi), or [Cline CLI](https://docs.cline.bot),
+and [Python 3](https://www.python.org/downloads/). Python restores learning context
+and resets learning notes; in Codex, only reset needs it. No extra Python packages
+are needed.
 
 ### Claude Code
 
@@ -89,6 +94,47 @@ mode. It resumes from your saved notes without repeating setup. To reset, run
 
 In Codex, the commands in this guide use `$` instead of `/`: `/vibe-wise:learn`
 becomes `$vibe-wise:learn`.
+
+### GitHub Copilot CLI
+
+In a terminal, run these commands **one at a time**:
+
+```sh
+copilot plugin marketplace add nykooi1/vibe-wise
+```
+
+```sh
+copilot plugin install vibe-wise@vibe-wise
+```
+
+Start Copilot in your project and run `/learn`. A session-start hook restores
+learning mode when you start or resume a session, and an always-on plugin rule
+keeps it after compaction. To reset, run `/reset`.
+
+### omp
+
+```sh
+omp plugin install github:nykooi1/vibe-wise
+```
+
+Start omp in your project and run `/vibe-wise:learn`. The extension restores
+learning mode at the start of each session and keeps it through compaction.
+To reset, run `/vibe-wise:reset`.
+
+### Cline
+
+Plugins work in the Cline CLI, SDK, and Kanban, not in the VS Code or JetBrains
+extensions.
+
+```sh
+cline plugin install https://github.com/nykooi1/vibe-wise.git
+```
+
+Start Cline in your project and run `/vibe-wise-learn`. The plugin restores
+learning mode at the start of each run. To reset, run `/vibe-wise-reset`.
+
+All hosts share the same `.vibe-wise/` notes, so you can switch tools between
+sessions. Don't use two tools on the same project at the same time.
 
 ## What it feels like
 
@@ -249,7 +295,7 @@ are with the stack. Checkpoint frequency—Light, Normal, or Frequent—is separ
 
 Preferences, learning notes, and a project map live in `.vibe-wise/` in your project. In a Git repository, that's the repository root, and VibeWise finds it from any subfolder. Without Git, it's the folder you start in, so always start from your project's top folder. Learning mode resumes in future sessions and after compaction. Add `.vibe-wise/` to your `.gitignore` to keep your notes out of Git; the plugin won't change it silently.
 
-No extra account, backend, or telemetry. Saved notes are included in the AI's context, so your normal Claude Code or Codex data settings still apply.
+No extra account, backend, or telemetry. Saved notes are included in the AI's context, so your coding tool's normal data settings still apply.
 
 To start learning this project from scratch, run `/vibe-wise:reset`. It shows the
 project and asks **Cancel / Reset learning**. After confirmation, it backs up your
@@ -291,6 +337,11 @@ codex plugin add vibe-wise@vibe-wise
 ```
 
 Then start a new Codex session.
+
+For GitHub Copilot CLI, run `copilot plugin update vibe-wise`. For omp, run
+`omp plugin install github:nykooi1/vibe-wise` again. For Cline, run
+`cline plugin install --force https://github.com/nykooi1/vibe-wise.git`. Then start
+a new session.
 
 ## License
 

@@ -275,6 +275,38 @@ class SessionStartTests(unittest.TestCase):
         self.assertNotIn("Use SQLite", context)
         self.assertNotIn("JSON storage", context)
 
+    def run_cwd_mode(self, cwd):
+        """Run the plain-text mode used by in-process adapters (omp, Cline)."""
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "hooks/session_start.py"), "--cwd", str(cwd)],
+            stdin=subprocess.DEVNULL, text=True, capture_output=True, timeout=5,
+            cwd=self.root,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        return result.stdout
+
+    def test_cwd_mode_prints_plain_instructions_for_active_project(self):
+        state = self.state()
+        nested = self.project / "src"
+        nested.mkdir()
+        text = self.run_cwd_mode(nested)
+        self.assertIn(str(ROOT / "skills/learn/SKILL.md"), text)
+        self.assertIn(str(state), text)
+        self.assertIn("use your file-reading tool", text)
+        self.assertNotIn("two writes must succeed together", text)
+        # Same bootstrap as Claude apart from the tool name, so hosts can't drift.
+        self.assertEqual(text.strip().replace("your file-reading tool", "Read"),
+                         self.context())
+
+    def test_cwd_mode_is_silent_without_active_learning(self):
+        self.assertEqual(self.run_cwd_mode(self.project), "")
+        self.state(mode="paused")
+        self.assertEqual(self.run_cwd_mode(self.project), "")
+        for raw in ("relative/path", str(self.root / "missing")):
+            with self.subTest(raw=raw):
+                self.assertEqual(self.run_cwd_mode(raw), "")
+
 
 if __name__ == "__main__":
     unittest.main()

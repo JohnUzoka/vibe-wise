@@ -305,3 +305,57 @@ Learn/behavior guides and saved notes, found a pending implementation decision
 over 40,000 characters into progress, and resumed its confirmation without writing
 application code. The source fixture stayed unchanged. Compaction events remain
 covered at the hook level; an actual interactive `/compact` check is still pending.
+
+## Other hosts
+
+`hooks/session_start.py` is the single restoration source. Claude Code uses its
+default JSON mode. Copilot CLI uses `--host copilot` (top-level `additionalContext`).
+omp and Cline call `--cwd <session directory>`, which prints the same instructions
+as plain text, with "your file-reading tool" instead of "Read". Each host reads
+`skills/<skill>/<host>.md` for command and tool names.
+
+| Host | Entry points | Restoration | Compaction |
+| --- | --- | --- | --- |
+| Copilot CLI | `/learn`, `/reset` (plugin skills) | `sessionStart` hook, `com.github.copilot/hooks/hooks.json` | Always-on rule, `com.github.copilot/rules/vibe-wise.mdc` |
+| omp | `/vibe-wise:learn`, `/vibe-wise:reset` | `before_agent_start` message, `adapters/omp/extension.ts` | `session.compacting` context, then re-delivered on the next turn |
+| Cline | `/vibe-wise-learn`, `/vibe-wise-reset` | `beforeRun` `appendContext`, `adapters/cline/plugin.ts` | Re-delivered at the start of every run |
+
+Copilot reads the root `plugin.json`, an Agent Plugins 1.0 manifest. Only that
+format loads `com.github.copilot/` (hooks and rules). Plugin rules must be `.mdc`
+with `description` and `alwaysApply: true`: Copilot 1.0.98 ignored the same rule as
+`.md`. The format isn't documented and was read from the CLI's runtime strings.
+The rule is always in the system prompt, so it defers to the profile: it is silent
+in projects without notes and in paused projects. The hook command relies on
+Copilot injecting `PLUGIN_ROOT` into plugin hook processes, which Copilot documents
+only for MCP and LSP servers. Keep hooks out of `.github/hooks/`: that path is
+loaded as repository hooks for anyone developing in this checkout. Direct installs
+(`copilot plugin install owner/repo`) are deprecated, so the README uses the
+`.github/plugin/marketplace.json` catalog.
+
+Cline evaluates plugins through jiti from a `data:` URL, so `import.meta.url` is not
+the plugin file. The adapter resolves the plugin root from jiti's `__dirname`.
+
+Verified on 2026-10-15:
+
+- All 68 tests pass. They run the Copilot hook command with camelCase and VS Code
+  payloads, and they run the omp extension and Cline plugin under Bun with fake
+  host APIs.
+- omp 16.4.8, live, loaded with `-e adapters/omp/extension.ts`. In print mode, an
+  active profile put `State directory: <project>/.vibe-wise` in the model's
+  context, and a paused profile left no restoration. In an interactive session,
+  `/vibe-wise:learn` loaded the guide, set a paused profile back to active, and
+  started onboarding.
+- Cline: `adapters/cline/plugin.ts` typechecks against the published `@cline/core`
+  and was loaded through the real `loadAgentPluginFromPath` and contribution
+  registry. That registered both commands, returned `appendContext` for an active
+  profile, and returned nothing for a paused one. No Cline CLI session was run.
+- Copilot CLI 1.0.98, live:
+  - The `sessionStart` hook put `State directory: <project>/.vibe-wise` in the
+    model's context for an active profile; a paused profile gave `NONE`.
+  - With the plugin installed, `copilot instruction list` listed the rule.
+  - An interactive session ran `/compact` (checkpoint "VibeWise Learn Mode
+    Initialization"). The next model request still contained the rule text.
+  - `copilot plugin marketplace add` with a local checkout, then
+    `copilot plugin install vibe-wise@vibe-wise`, installed both skills and the rule.
+  - `/learn` was not invoked explicitly; the model followed the hook text by
+    reading `SKILL.md`, `profile.md`, `behavior.md`, and `copilot.md`.

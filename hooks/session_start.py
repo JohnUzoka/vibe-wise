@@ -1,11 +1,14 @@
-"""Restore learning context when Claude Code starts or resumes a session.
+"""Restore learning context when a coding agent starts, resumes, or compacts.
 
-Claude Code sends a JSON event on stdin. For a project with active learning notes,
-we print JSON instructions telling Claude which files to read. Otherwise we stay
-silent. This hook does not teach, write notes, or parse conversation transcripts.
-The events that trigger it (including compaction) are configured in hooks.json.
+Claude Code (default) and Copilot CLI (`--host copilot`) send a JSON event on
+stdin; for a project with active learning notes we print JSON instructions telling
+the model which files to read. Hosts whose adapters run in-process (omp, Cline)
+call `--cwd <absolute project path>` and receive the same instructions as plain
+text. Otherwise we stay silent. This hook does not teach, write notes, or parse
+conversation transcripts. Each host's adapter decides which events trigger it.
 """
 
+import argparse
 import json
 from pathlib import Path
 import re
@@ -65,11 +68,8 @@ def state_directory(cwd):
     return None
 
 
-def restore(payload):
-    """Build Claude's restoration instructions, or return None to do nothing."""
-    if not isinstance(payload, dict) or payload.get("hook_event_name") != "SessionStart":
-        return None
-    raw_cwd = payload.get("cwd")
+def restoration_context(raw_cwd, reader="Read"):
+    """Build reading instructions for an absolute project path, or return None."""
     # Use the event's explicit project path. A relative path would depend on where
     # the hook process happened to start and could select the wrong learning notes.
     if not isinstance(raw_cwd, str) or not Path(raw_cwd).is_absolute():
@@ -87,8 +87,8 @@ def restore(payload):
 
     # Bootstrap from source files instead of emitting partial notes or an incomplete
     # topic index. Output size is independent of the amount of learning history.
-    context = (
-        "VibeWise is active for this project. Before responding or coding, use Read "
+    return (
+        f"VibeWise is active for this project. Before responding or coding, use {reader} "
         "to load the Learn guide and its referenced behavior instructions:\n"
         f"{PLUGIN_ROOT / 'skills/learn/SKILL.md'}\n\n"
         f"State directory: {state}\n"
@@ -103,6 +103,15 @@ def restore(payload):
         "questions; do not repeat completed onboarding. If the profile is now "
         "paused, keep it paused: this hook is not an explicit Learn invocation."
     )
+
+
+def restore(payload):
+    """Build Claude's restoration instructions, or return None to do nothing."""
+    if not isinstance(payload, dict) or payload.get("hook_event_name") != "SessionStart":
+        return None
+    context = restoration_context(payload.get("cwd"))
+    if context is None:
+        return None
     # Claude Code adds additionalContext to the model's context. These are reading
     # instructions for Claude; the hook itself hasn't loaded the map or progress.
     return {"hookSpecificOutput": {
@@ -110,12 +119,37 @@ def restore(payload):
     }}
 
 
+def restore_copilot(payload):
+    """Build Copilot CLI's sessionStart output, or return None to do nothing."""
+    # Copilot sends camelCase fields for `sessionStart` registrations and adds
+    # `hook_event_name` only in its VS Code-compatible `SessionStart` format.
+    if not isinstance(payload, dict) or payload.get("hook_event_name") not in (None, "SessionStart"):
+        return None
+    context = restoration_context(payload.get("cwd"), reader="your file-reading tool")
+    # Copilot reads only a top-level additionalContext from sessionStart hooks.
+    return None if context is None else {"additionalContext": context}
+
+
 def main():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--host", choices=("claude", "copilot"), default="claude")
+    parser.add_argument("--cwd")
+    try:
+        args, _ = parser.parse_known_args()
+    except SystemExit:
+        return  # A bad registration must not block the session or print usage.
+    if args.cwd is not None:
+        # In-process adapters (omp, Cline) pass the session directory directly and
+        # inject the plain-text instructions through their own context APIs.
+        context = restoration_context(args.cwd, reader="your file-reading tool")
+        if context:
+            print(context)
+        return
     try:
         # This 64 KiB limit bounds the incoming event, NOT the learner's notes.
         # Oversized/truncated JSON fails parsing and takes the quiet error path.
         payload = json.loads(sys.stdin.read(65536))
-        output = restore(payload)
+        output = (restore_copilot if args.host == "copilot" else restore)(payload)
     except (OSError, ValueError, TypeError, RecursionError):
         return  # Learning should never prevent a coding session from starting.
     if output:
