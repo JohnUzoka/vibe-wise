@@ -16,11 +16,20 @@ class InstallClineTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.home = Path(self.temp.name)
 
-    def install(self):
+    def install(self, *extra):
         return subprocess.run(
-            [sys.executable, str(SCRIPT), "--home", str(self.home)],
+            [sys.executable, str(SCRIPT), "--home", str(self.home), *extra],
             text=True, capture_output=True, timeout=30,
         )
+
+    def test_documents_override_moves_rule_and_workflows_only(self):
+        # Under WSL, Cline's Documents folder is xdg-user-dir's answer, often $HOME.
+        result = self.install("--documents", str(self.home))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.home / "Cline/Rules/vibe-wise.md").is_file())
+        self.assertTrue((self.home / "Cline/Workflows/vibe-wise-learn").is_file())
+        self.assertTrue((self.home / ".cline/skills/learn/SKILL.md").is_file())
+        self.assertFalse((self.home / "Documents").exists())
 
     def test_installs_skills_and_always_on_rule(self):
         result = self.install()

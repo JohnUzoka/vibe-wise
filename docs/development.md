@@ -339,8 +339,8 @@ the plugin file. The adapter resolves the plugin root from jiti's `__dirname`.
 
 The Cline extensions don't load plugins. The installer copies `skills/learn` and
 `skills/reset` to `~/.cline/skills/`, adds extension-less `vibe-wise-learn` and
-`vibe-wise-reset` workflows to `Documents/Cline/Workflows/`, and writes the Copilot
-rule body, without frontmatter, to `Documents/Cline/Rules/vibe-wise.md`. Cline
+`vibe-wise-reset` workflows to `<Documents>/Cline/Workflows/`, and writes the Copilot
+rule body, without frontmatter, to `<Documents>/Cline/Rules/vibe-wise.md`. Cline
 treats rule frontmatter as `paths` conditions, so a rule without it is always
 active. This was checked against SLAI.Cline 2.2.0, a Cline fork. Its bundle reads
 those directories and puts global rules into the system prompt. Its slash menu lists
@@ -350,6 +350,11 @@ fork also has file hooks (`TaskStart`, `TaskResume`, `UserPromptSubmit`) under
 `Documents/Cline/Hooks`, but they are off by default and nothing fires after
 compaction. Its `PreCompact` hook is defined but never invoked, so the rule does the
 restoring. Installed skills are matched on their descriptions and may auto-activate.
+`<Documents>` is resolved like the extension does: `xdg-user-dir DOCUMENTS` on
+Linux, falling back to `~/Documents`, and the shell's MyDocuments folder on Windows.
+Under WSL, `xdg-user-dir` commonly returns `$HOME`, so rules and workflows go to
+`~/Cline/`, not `~/Documents/Cline/`. That mismatch is why the first install was
+invisible in a WSL-remote VS Code window.
 
 OpenCode targets the released `opencode-ai` CLI and its V1 plugin API
 (`@opencode-ai/plugin`). Plugins load from npm or from `~/.config/opencode/plugins/`,

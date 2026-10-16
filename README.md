@@ -136,18 +136,20 @@ learning mode at the start of each run. To reset, run `/vibe-wise-reset`.
 
 **Cline in VS Code or JetBrains:** the extensions don't load plugins. Clone this
 repository and run the installer on the machine where the extension runs. It copies
-the Learn and Reset skills to `~/.cline/skills/` and adds an always-on rule to
-`Documents/Cline/Rules/`:
+the Learn and Reset skills to `~/.cline/skills/`, and adds `/vibe-wise-learn` and
+`/vibe-wise-reset` workflows and an always-on rule under Cline's Documents folder:
 
 ```sh
 python3 scripts/install_cline.py
 ```
 
-From WSL, for a Windows installation of the extension, pass your Windows home:
-`python3 scripts/install_cline.py --home /mnt/c/Users/<you>`. Then run
-`/vibe-wise-learn` in Cline. The rule resumes learning mode in new tasks and after
-compaction. To reset, run `/vibe-wise-reset`. Run the installer again after
-updating your clone.
+With VS Code's WSL remote, Cline runs inside WSL, so run the installer in WSL. There,
+Cline's Documents folder is whatever `xdg-user-dir DOCUMENTS` prints, often your home
+directory, and the installer uses the same lookup. For a Windows-native extension,
+run it with Windows Python, or from WSL with
+`--home /mnt/c/Users/<you>`. Then reload VS Code and run `/vibe-wise-learn` in Cline.
+The rule resumes learning mode in new tasks and after compaction. To reset, run
+`/vibe-wise-reset`. Run the installer again after updating your clone.
 
 ### OpenCode
 

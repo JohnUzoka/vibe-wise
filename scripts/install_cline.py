@@ -9,8 +9,13 @@ every request, so learning mode survives new tasks, resumed tasks, and context
 compaction. It defers to each project's profile: projects that never ran Learn, or
 that paused it, are unaffected.
 
-    python3 scripts/install_cline.py                         # this machine's home
+    python3 scripts/install_cline.py                         # Cline on this machine
     python3 scripts/install_cline.py --home /mnt/c/Users/me  # Windows Cline, from WSL
+
+With VS Code's WSL remote, the extension runs inside WSL, so run it there without
+`--home`. Cline finds "Documents" the way this script does: `xdg-user-dir DOCUMENTS`
+on Linux (often just your home directory under WSL), the shell's Documents folder
+on Windows. Pass `--documents` when Cline uses a different folder.
 
 Re-run after updating this checkout. Learner notes are never touched.
 """
@@ -18,6 +23,7 @@ Re-run after updating this checkout. Learner notes are never touched.
 import argparse
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,10 +45,29 @@ def rule_body():
     return body.lstrip()
 
 
-def install(home):
+def documents_dir(home):
+    """Cline's global rules and workflows live under the user's Documents folder."""
+    if home == Path.home():
+        query = (
+            ["xdg-user-dir", "DOCUMENTS"] if sys.platform.startswith("linux") else
+            ["powershell", "-NoProfile", "-Command",
+             "[Environment]::GetFolderPath('MyDocuments')"] if sys.platform == "win32" else
+            None
+        )
+        try:
+            found = query and subprocess.run(
+                query, capture_output=True, text=True, timeout=10).stdout.strip()
+        except OSError:
+            found = None
+        if found:
+            return Path(found)
+    return home / "Documents"
+
+
+def install(home, documents):
     skills_dir = home / ".cline" / "skills"
-    rules_dir = home / "Documents" / "Cline" / "Rules"
-    workflows_dir = home / "Documents" / "Cline" / "Workflows"
+    rules_dir = documents / "Cline" / "Rules"
+    workflows_dir = documents / "Cline" / "Workflows"
     for name in SKILLS:
         target = skills_dir / name
         existing = target / "SKILL.md"
@@ -73,7 +98,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--home", type=Path, default=Path.home(),
                         help="home directory of the machine Cline runs on")
-    install(parser.parse_args().home)
+    parser.add_argument("--documents", type=Path,
+                        help="Cline's Documents folder (default: detected like Cline does)")
+    args = parser.parse_args()
+    install(args.home, args.documents or documents_dir(args.home))
 
 
 if __name__ == "__main__":
