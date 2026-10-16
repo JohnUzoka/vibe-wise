@@ -151,7 +151,7 @@ Start Cline in your project and run `/vibe-wise-learn`. The plugin restores
 learning mode at the start of each run. To reset, run `/vibe-wise-reset`.
 
 **Cline in VS Code or JetBrains:** the extensions don't load plugins, so an installer
-copies the Learn and Reset skills to `~/.cline/skills/` and adds the two commands
+copies the Learn and Reset guides to `~/.cline/vibe-wise/` and adds the two commands
 (as global workflows) and an always-on rule to Cline's global `Cline/` folder. Run
 it on the machine where the extension runs:
 
@@ -172,7 +172,7 @@ Reload the VS Code window, then check Cline's **Manage Cline Rules & Workflows**
 panel (the scale icon below the chat box): `vibe-wise.md` should appear under
 Global Rules, and `vibe-wise-learn` and `vibe-wise-reset` under Global Workflows.
 Run `/vibe-wise-learn` in your project. To remove it, delete those three entries and
-the `learn` and `reset` folders in `~/.cline/skills/`.
+`~/.cline/vibe-wise/`.
 
 ### OpenCode
 

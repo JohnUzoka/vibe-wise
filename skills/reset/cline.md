@@ -1,7 +1,7 @@
 # VibeWise Reset in Cline
 
 These notes adapt Claude Code tool and command names for Cline: the CLI, SDK, and
-Kanban (VibeWise plugin) and the VS Code or JetBrains extension (installed skills).
+Kanban (VibeWise plugin) and the VS Code or JetBrains extension (installed guides).
 Follow SKILL.md as written otherwise.
 
 - Paths: `${CLAUDE_PLUGIN_ROOT}` is not expanded in Cline. Run `reset.py` from this

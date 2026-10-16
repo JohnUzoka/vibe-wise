@@ -338,18 +338,23 @@ Cline evaluates plugins through jiti from a `data:` URL, so `import.meta.url` is
 the plugin file. The adapter resolves the plugin root from jiti's `__dirname`.
 
 The Cline extensions don't load plugins. The installer copies `skills/learn` and
-`skills/reset` to `~/.cline/skills/`, adds extension-less `vibe-wise-learn` and
-`vibe-wise-reset` workflows to `<Documents>/Cline/Workflows/`, and writes the Copilot
-rule body, without frontmatter, to `<Documents>/Cline/Rules/vibe-wise.md`. Cline
-treats rule frontmatter as `paths` conditions, so a rule without it is always
-active. This was checked against SLAI.Cline 2.2.0, a Cline fork. Its bundle reads
-those directories and puts global rules into the system prompt. Its slash menu lists
-only built-in commands and workflows, and a workflow's command is its exact file
-name. Skills get no slash command there; the model loads them with `use_skill`. That
+`skills/reset` to `~/.cline/vibe-wise/`, adds extension-less `vibe-wise-learn` and
+`vibe-wise-reset` workflows to `<Documents>/Cline/Workflows/` that point at those
+guides, and writes the Copilot rule body, without frontmatter and with the guide's
+absolute path in place of "load the `learn` skill", to
+`<Documents>/Cline/Rules/vibe-wise.md`. Cline treats rule frontmatter as `paths`
+conditions, so a rule without it is always active. This was checked against
+SLAI.Cline 2.2.0, a Cline fork. Its bundle reads those directories and puts global
+rules into the system prompt. Its slash menu lists only built-in commands and
+workflows, and a workflow's command is its exact file name. The guides are not
+installed as Cline skills: the extension lists every skill in the system prompt,
+tells the model to load matching ones with `use_skill`, and ignores
+`disable-model-invocation`, so a `learn` skill could start onboarding unasked. That
 fork also has file hooks (`TaskStart`, `TaskResume`, `UserPromptSubmit`) under
 `Documents/Cline/Hooks`, but they are off by default and nothing fires after
 compaction. Its `PreCompact` hook is defined but never invoked, so the rule does the
-restoring. Installed skills are matched on their descriptions and may auto-activate.
+restoring. When installing into a Windows home from WSL, guide paths are written
+in drive-letter form for the Windows extension.
 `<Documents>` is resolved like the extension does: `xdg-user-dir DOCUMENTS` on
 Linux, falling back to `~/Documents`, and the shell's MyDocuments folder on Windows.
 Under WSL, `xdg-user-dir` commonly returns `$HOME`, so rules and workflows go to

@@ -1,8 +1,8 @@
 # VibeWise in Cline
 
 These notes adapt Claude Code tool and command names for Cline: the CLI, SDK, and
-Kanban (VibeWise plugin) and the VS Code or JetBrains extension (installed skills
-and rule). They don't change the learning behavior; follow SKILL.md and its guides
+Kanban (VibeWise plugin) and the VS Code or JetBrains extension (installed guides,
+workflows, and rule). They don't change the learning behavior; follow SKILL.md and its guides
 as written.
 
 - Commands: `/vibe-wise:learn` is `/vibe-wise-learn` and `/vibe-wise:reset` is
